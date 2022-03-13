@@ -10,13 +10,9 @@ import (
 func main() {
 	currentTime := time.Now()
 	digits := 1024
-	A := dhkea.DiffieHellman{
-		Digits: digits,
-	}
-	// A.New()
-	B := dhkea.DiffieHellman{
-		Digits: digits,
-	}
+
+	A := dhkea.New(digits)
+	B := dhkea.New(digits)
 	AGI := A.GenerateIndividualKey()
 	// fmt.Println("GenerateIndividualKey:", A.PrivateKey)
 

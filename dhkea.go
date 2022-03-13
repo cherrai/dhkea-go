@@ -96,9 +96,14 @@ func (dh *DiffieHellman) GetSharedKey(theirPublicKey *big.Int) *big.Int {
 	return dh.quickPowMod(theirPublicKey, dh.PrivateKey, dh.ModpGroup.Prime, false)
 }
 
-func (dh *DiffieHellman) New() {
-	if dh.Digits == 0 {
+func New(digits int) *DiffieHellman {
+	dh := DiffieHellman{
+		Digits: digits,
+	}
+	if digits == 0 {
 		dh.Digits = 2014
+	} else {
+		dh.Digits = digits
 	}
 	if !isCache {
 		isCache = true
@@ -109,10 +114,10 @@ func (dh *DiffieHellman) New() {
 		panic(err)
 	}
 	dh.ModpGroup = mg
+	return &dh
 }
 
 func (dh *DiffieHellman) GenerateIndividualKey() (ik IndividualKey) {
-	dh.New()
 	privateKey := randomBigInt(dh.ModpGroup.Prime)
 	publicKey := dh.quickPowMod(dh.ModpGroup.Generator, privateKey, dh.ModpGroup.Prime, true)
 
