@@ -98,7 +98,7 @@ func New(digits int) *DiffieHellman {
 		Digits: digits,
 	}
 	if digits == 0 {
-		dh.Digits = 2014
+		dh.Digits = 1024
 	} else {
 		dh.Digits = digits
 	}

@@ -26,11 +26,10 @@ func main() {
 
 	AKey := A.GetSharedKey(B.PublicKey)
 	fmt.Println("A key", AKey)
-	// fmt.Println("A key", BPublicKey)
 
-	// BKey := B.GetSharedKey(A.PublicKey)
-	// fmt.Println("B key", BKey)
-	// fmt.Println(AKey.String() == BKey.String())
+	BKey := B.GetSharedKey(A.PublicKey)
+	fmt.Println("B key", BKey)
+	fmt.Println(AKey.String() == BKey.String())
 	elapsed := time.Since(currentTime)
 	fmt.Println("time：", elapsed)
 }
