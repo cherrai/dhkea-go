@@ -52,10 +52,6 @@ var primes = map[int]struct {
 }
 
 type (
-	IndividualKey struct {
-		PrivateKey *big.Int
-		PublicKey  *big.Int
-	}
 	ModpGroup struct {
 		Generator *big.Int
 		Prime     *big.Int
@@ -64,6 +60,7 @@ type (
 		// Digits:768, 1024, 1536, 2048, 3072, 4096, 6144, 8192
 		Digits     int
 		PrivateKey *big.Int
+		PublicKey  *big.Int
 		ModpGroup  *ModpGroup
 	}
 )
@@ -88,7 +85,7 @@ func cache() {
 			<-ch
 		}(k, v)
 	}
-	fmt.Println(wg)
+	// fmt.Println(wg)
 	wg.Wait()
 }
 func (dh *DiffieHellman) GetSharedKey(theirPublicKey *big.Int) *big.Int {
@@ -114,18 +111,16 @@ func New(digits int) *DiffieHellman {
 		panic(err)
 	}
 	dh.ModpGroup = mg
+	dh.generateIndividualKey()
 	return &dh
 }
 
-func (dh *DiffieHellman) GenerateIndividualKey() (ik IndividualKey) {
+func (dh *DiffieHellman) generateIndividualKey() {
 	privateKey := randomBigInt(dh.ModpGroup.Prime)
 	publicKey := dh.quickPowMod(dh.ModpGroup.Generator, privateKey, dh.ModpGroup.Prime, true)
 
 	dh.PrivateKey = privateKey
-
-	ik.PrivateKey = privateKey
-	ik.PublicKey = publicKey
-	return
+	dh.PublicKey = publicKey
 }
 
 func ReverseStringArray(s *[]string) {
