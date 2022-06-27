@@ -1,17 +1,22 @@
 package dhkea
 
 import (
-	rand "crypto/rand"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"math/big"
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/MetahorizonLab/nyanyago-utils/arrays"
 )
 
 var expTableCache map[int]([]*big.Int) = map[int]([]*big.Int){}
-var isCache = false
+var (
+	EnableCache = true
+	isCache     = false
+)
 
 var primes = map[int]struct {
 	Generator int64
@@ -67,21 +72,25 @@ type (
 
 func cache() {
 	var wg sync.WaitGroup
+	mutex := new(sync.RWMutex)
 	ch := make(chan struct{}, 4)
 	for k, v := range primes {
 		ch <- struct{}{}
 		wg.Add(1)
 
 		go func(digit int, v interface{}) {
+			defer wg.Done()
 			mg, err := getModpGroupInfo(digit)
 			if err != nil {
 				panic(err)
 			}
 			if expTableCache[digit] == nil {
 				xExpTable := expTable(mg.Generator, mg.Prime, digit)
+
+				mutex.Lock()
 				expTableCache[digit] = xExpTable
+				defer mutex.Unlock()
 			}
-			defer wg.Done()
 			<-ch
 		}(k, v)
 	}
@@ -93,6 +102,7 @@ func (dh *DiffieHellman) GetSharedKey(theirPublicKey *big.Int) *big.Int {
 	return dh.quickPowMod(theirPublicKey, dh.PrivateKey, dh.ModpGroup.Prime, false)
 }
 
+// Digits:768, 1024, 1536, 2048, 3072, 4096, 6144, 8192
 func New(digits int) *DiffieHellman {
 	dh := DiffieHellman{
 		Digits: digits,
@@ -102,7 +112,7 @@ func New(digits int) *DiffieHellman {
 	} else {
 		dh.Digits = digits
 	}
-	if !isCache {
+	if EnableCache && !isCache {
 		isCache = true
 		go cache()
 	}
@@ -123,22 +133,17 @@ func (dh *DiffieHellman) generateIndividualKey() {
 	dh.PublicKey = publicKey
 }
 
-func ReverseStringArray(s *[]string) {
-	j := len(*s) - 1
-	for i := 0; i < j; i++ {
-		(*s)[i], (*s)[j] = (*s)[j], (*s)[i]
-		j--
-	}
-}
-
 /** Calculates x ** y % p.
  *  Time complexity: O(n^2).
  */
 func (dh *DiffieHellman) quickPowMod(x, y, p *big.Int, isCache bool) *big.Int {
 	primeBinaryArray := strings.Split(fmt.Sprintf("%b", y), "")
-	ReverseStringArray(&primeBinaryArray)
+	arrays.ReverseString(&primeBinaryArray)
+
 	var xExpTable []*big.Int
-	if isCache {
+
+	// fmt.Println("isCache", isCache, expTableCache[dh.Digits] == nil)
+	if EnableCache && isCache {
 		if expTableCache[dh.Digits] == nil {
 			xExpTable = expTable(x, p, len(primeBinaryArray))
 		} else {
@@ -156,26 +161,32 @@ func (dh *DiffieHellman) quickPowMod(x, y, p *big.Int, isCache bool) *big.Int {
 	// }
 
 	results := [](*big.Int){}
+
+	mutex := new(sync.RWMutex)
 	var wg sync.WaitGroup
-	goroutineNum := runtime.NumCPU()
-	for k := 0; k < goroutineNum; k++ {
-		result := big.NewInt(1)
+	cpus := runtime.NumCPU()
+	for k := 0; k < cpus; k++ {
 		wg.Add(1)
 		go func(j int, length int) {
+			defer wg.Done()
+			result := big.NewInt(1)
 			for i := j; i < length; i++ {
 				if primeBinaryArray[i] == "1" {
 					result = result.Mod(result.Mul(result, xExpTable[i]), p)
 				}
 			}
+			mutex.Lock()
 			results = append(results, result)
-			defer wg.Done()
-		}(len(primeBinaryArray)/goroutineNum*k, len(primeBinaryArray)/goroutineNum*(k+1))
+			defer mutex.Unlock()
+
+		}(len(primeBinaryArray)/cpus*k, len(primeBinaryArray)/cpus*(k+1))
 	}
 	wg.Wait()
 	result := big.NewInt(1)
 	for _, v := range results {
 		result = result.Mod(result.Mul(result, v), p)
 	}
+
 	return result
 }
 
@@ -213,11 +224,11 @@ func getModpGroupInfo(digits int) (mg *ModpGroup, err error) {
 }
 
 func randomBigInt(prime *big.Int) *big.Int {
+	n, _ := rand.Int(rand.Reader, prime)
+	return n
 	// fmt.Println("prime", prime)
 
 	// currentTime := time.Now()
-	n, _ := rand.Int(rand.Reader, prime)
-	return n
 	// fmt.Println("n.Int64()", n)
 	// elapsed := time.Since(currentTime)
 
