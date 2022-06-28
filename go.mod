@@ -1,4 +1,4 @@
-module github.com/MetahorizonLab/dhkea-go
+module github.com/cherrai/dhkea-go
 
 go 1.17
 
