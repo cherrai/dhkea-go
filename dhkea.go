@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/MetahorizonLab/nyanyago-utils/arrays"
+	"github.com/cherrai/nyanyago-utils/narrays"
 )
 
 var expTableCache map[int]([]*big.Int) = map[int]([]*big.Int){}
@@ -138,7 +138,7 @@ func (dh *DiffieHellman) generateIndividualKey() {
  */
 func (dh *DiffieHellman) quickPowMod(x, y, p *big.Int, isCache bool) *big.Int {
 	primeBinaryArray := strings.Split(fmt.Sprintf("%b", y), "")
-	arrays.ReverseString(&primeBinaryArray)
+	narrays.ReverseString(&primeBinaryArray)
 
 	var xExpTable []*big.Int
 
@@ -210,14 +210,14 @@ func getModpGroupInfo(digits int) (mg *ModpGroup, err error) {
 		Generator int64
 		Prime     string
 	}{} {
-		err = errors.New("The digits are not supported.")
+		err = errors.New("the digits are not supported")
 	}
 	mg.Generator = big.NewInt(primes[digits].Generator)
 	mg.Prime = new(big.Int)
 	var ok bool
 	mg.Prime, ok = mg.Prime.SetString(primes[digits].Prime, 10)
 	if !ok {
-		err = errors.New("Big conversion failed.")
+		err = errors.New("big conversion failed")
 		return
 	}
 	return

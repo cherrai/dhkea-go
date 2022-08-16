@@ -108,10 +108,10 @@ func main() {
 
 		log.Info("成功次数 => ", v.successCount)
 		log.Info("总次数 => ", v.totalCount)
-		log.Info("本次耗时 => ", v.elapsed)
+		log.Info("本次耗时 => ", v.elapsed.String())
 	}
 	elapsed := time.Since(currentTime)
-	log.Info("总耗时 => ", elapsed)
+	log.Info("总耗时 => ", elapsed.String())
 	log.Info("==================End==================")
 
 	// elapsed := time.Since(currentTime)
@@ -185,7 +185,7 @@ func runCountsFunc(index int, sfunc func(index int)) {
 				successCount++
 			}
 			elapsed := time.Since(currentTime)
-			log.Info(strconv.Itoa(rc.count)+"轮次	第"+strconv.Itoa(count)+"次计算 => 位数：", strconv.Itoa(digits), "key值对比：", AKey.String() == BKey.String(), "耗时：", elapsed)
+			log.Info(strconv.Itoa(rc.count)+"轮次	第"+strconv.Itoa(count)+"次计算 => 位数：", strconv.Itoa(digits), "key值对比：", AKey.String() == BKey.String(), "耗时：", elapsed.String())
 			defer wg.Done()
 			<-ch
 		}(i+1, digitsArr[i%8])
