@@ -14,8 +14,8 @@ import (
 
 var expTableCache map[int]([]*big.Int) = map[int]([]*big.Int){}
 var (
-	EnableCache = true
-	isCache     = false
+	EnableDHKeaCache = true
+	isCache          = false
 )
 
 var primes = map[int]struct {
@@ -103,7 +103,7 @@ func (dh *DiffieHellman) GetSharedKey(theirPublicKey *big.Int) *big.Int {
 }
 
 // Digits:768, 1024, 1536, 2048, 3072, 4096, 6144, 8192
-func New(digits int) *DiffieHellman {
+func DHKeaNew(digits int) *DiffieHellman {
 	dh := DiffieHellman{
 		Digits: digits,
 	}
@@ -112,7 +112,7 @@ func New(digits int) *DiffieHellman {
 	} else {
 		dh.Digits = digits
 	}
-	if EnableCache && !isCache {
+	if EnableDHKeaCache && !isCache {
 		isCache = true
 		go cache()
 	}
@@ -143,7 +143,7 @@ func (dh *DiffieHellman) quickPowMod(x, y, p *big.Int, isCache bool) *big.Int {
 	var xExpTable []*big.Int
 
 	// fmt.Println("isCache", isCache, expTableCache[dh.Digits] == nil)
-	if EnableCache && isCache {
+	if EnableDHKeaCache && isCache {
 		if expTableCache[dh.Digits] == nil {
 			xExpTable = expTable(x, p, len(primeBinaryArray))
 		} else {
@@ -226,58 +226,4 @@ func getModpGroupInfo(digits int) (mg *ModpGroup, err error) {
 func randomBigInt(prime *big.Int) *big.Int {
 	n, _ := rand.Int(rand.Reader, prime)
 	return n
-	// fmt.Println("prime", prime)
-
-	// currentTime := time.Now()
-	// fmt.Println("n.Int64()", n)
-	// elapsed := time.Since(currentTime)
-
-	// currentTime1 := time.Now()
-	// primeBinaryArray := strings.Split(fmt.Sprintf("%b", prime), "")
-
-	// // fmt.Println("binaryArray", primeBinaryArray, len(primeBinaryArray))
-	// var randomBinaryArray string = ""
-	// // midNum := big.NewInt(5)
-
-	// samePrefix := true
-	// for i := 0; i < len(primeBinaryArray); i++ {
-	// 	if !samePrefix {
-	// 		if mrand.Float64() > 0.5 {
-	// 			randomBinaryArray = randomBinaryArray + "1"
-	// 		} else {
-	// 			randomBinaryArray = randomBinaryArray + "0"
-	// 		}
-	// 	} else {
-	// 		if primeBinaryArray[i] == "0" {
-	// 			randomBinaryArray = randomBinaryArray + "0"
-	// 		} else {
-	// 			r := 1
-	// 			k := 30
-	// 			if len(primeBinaryArray)-i < 30 {
-	// 				k = len(primeBinaryArray) - i
-	// 			}
-	// 			for j := i; j < i+k; j++ {
-	// 				z, _ := strconv.Atoi(primeBinaryArray[j])
-	// 				r = (r << 1) | z
-	// 			}
-	// 			currentDigit := 1
-	// 			f := 1 << k
-	// 			if mrand.Float64() < float64(f)/float64(r) {
-	// 				currentDigit = 0
-	// 			}
-	// 			z, _ := strconv.Atoi(primeBinaryArray[i])
-	// 			samePrefix = currentDigit == z
-
-	// 			randomBinaryArray = randomBinaryArray + strconv.Itoa(currentDigit)
-	// 		}
-	// 	}
-	// }
-
-	// fmt.Println("randomBinaryArray", randomBinaryArray)
-	// // fmt.Println("十进制", fmt.Sprintf("%d", randomBinaryArray))
-
-	// elapsed1 := time.Since(currentTime1)
-	// fmt.Println("11111该函数执行完成耗时：", elapsed1)
-	// randomNum := new(big.Int)
-	// return randomNum
 }

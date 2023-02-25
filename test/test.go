@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cherrai/nyanyago-utils/cipher"
+	"github.com/cherrai/dhkea-go"
 	"github.com/cherrai/nyanyago-utils/nlog"
 )
 
@@ -68,7 +68,7 @@ var (
 func main() {
 	nlog.SetPrefixTemplate("[{{Timer}}] [{{Count}}]@{{Name}}")
 	nlog.SetTimeDigits(3)
-	cipher.EnableDHKeaCache = true
+	dhkea.EnableDHKeaCache = true
 
 	// runCount := 200
 
@@ -95,7 +95,7 @@ func main() {
 
 	for i := 0; i < len(runCounts); i++ {
 		wg.Add(1)
-		runCountsFunc(i, func(index int) {
+		runFunc(i, func(index int) {
 			defer wg.Done()
 		})
 	}
@@ -150,7 +150,7 @@ func main() {
 	// fmt.Println("bye")
 }
 
-func runCountsFunc(index int, sfunc func(index int)) {
+func runFunc(index int, sfunc func(index int)) {
 
 	ch := make(chan struct{}, runtime.NumCPU())
 
@@ -167,8 +167,8 @@ func runCountsFunc(index int, sfunc func(index int)) {
 		go func(count int, digits int) {
 			totalCount++
 			currentTime := time.Now()
-			A := cipher.DHKeaNew(digits)
-			B := cipher.DHKeaNew(digits)
+			A := dhkea.DHKeaNew(digits)
+			B := dhkea.DHKeaNew(digits)
 			AKey := A.GetSharedKey(B.PublicKey)
 			// fmt.Println("A key", AKey)
 

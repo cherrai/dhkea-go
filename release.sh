@@ -6,6 +6,11 @@ push() {
   git push origin v$version
 }
 
+delete() {
+  git tag -d v$version
+  git push origin :refs/tags/v$version
+}
+
 test() {
   air
 }
@@ -37,7 +42,7 @@ testbuildwindows() {
 }
 
 main() {
-  cmd_list=("push test testbuildlinux testbuild testbuildmacx86 testbuildmacm1 testbuildwindows")
+  cmd_list=("push delete test testbuildlinux testbuild testbuildmacx86 testbuildmacm1 testbuildwindows")
   if echo "${cmd_list[@]}" | grep -wq "$1"; then
     "$1"
   else
